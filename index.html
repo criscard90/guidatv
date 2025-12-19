@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Guide</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-950 text-white">
+    <nav class="p-4 border-b border-zinc-800 sticky top-0 bg-zinc-950/90 backdrop-blur">
+        <h1 class="text-xl font-bold">TV GUIDE</h1>
+    </nav>
+    
+    <div id="tv-grid" class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+
+    <script>
+        // Logica per caricare i dati
+        async function loadTV() {
+            const grid = document.getElementById('tv-grid');
+            try {
+                const res = await fetch('https://api.tvmaze.com/schedule?country=IT');
+                const data = await res.json();
+                grid.innerHTML = data.map(item => `
+                    <div class="rounded-lg overflow-hidden bg-zinc-900 shadow-lg">
+                        <img src="${item.show.image ? item.show.image.medium : 'https://via.placeholder.com/210x295'}" class="w-full">
+                        <div class="p-2 text-sm">
+                            <b class="text-red-500">${item.airtime}</b>
+                            <h2 class="truncate font-bold">${item.show.name}</h2>
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) { grid.innerHTML = "Errore caricamento."; }
+        }
+
+        // Registrazione SW (Indispensabile per PWA vera)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        loadTV();
+    </script>
+</body>
+</html>
