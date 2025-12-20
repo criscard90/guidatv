@@ -3,68 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Guide</title>
+    <title>TV Guide Premium</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #080808; color: white; }
+        .netflix-card:hover { transform: scale(1.05); z-index: 10; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body class="bg-zinc-950 text-white">
-    <nav class="p-4 border-b border-zinc-800 sticky top-0 bg-zinc-950/90 backdrop-blur">
-        <h1 class="text-xl font-bold">TV GUIDE</h1>
-    </nav>
-    
-    <div id="tv-grid" class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+<body>
+    <header class="p-5 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-md z-50">
+        <h1 class="text-3xl font-extrabold text-red-600 tracking-tighter">TV FLIX</h1>
+        <div id="status" class="text-xs bg-zinc-800 px-3 py-1 rounded-full text-zinc-400">In onda ora</div>
+    </header>
 
-    <script>
-        async function loadTV() {
-    const grid = document.getElementById('tv-grid');
-    grid.innerHTML = '<p class="col-span-full text-center">Caricamento in corso...</p>';
-    
-    try {
-        console.log("Tentativo di recupero dati...");
-        // Usiamo HTTPS obbligatorio e aggiungiamo un log per vedere cosa arriva
-        const res = await fetch('https://api.tvmaze.com/schedule?country=IT');
-        const data = await res.json();
-        
-        console.log("Dati ricevuti:", data);
+    <section id="hero" class="relative h-[60vh] w-full bg-cover bg-center flex items-end p-8 mb-8">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent"></div>
+        <div class="relative z-10 max-w-2xl">
+            <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded mb-2 inline-block uppercase">In evidenza</span>
+            <h2 id="hero-title" class="text-4xl md:text-6xl font-bold mb-4 italic">Caricamento...</h2>
+            <p id="hero-desc" class="text-zinc-300 text-sm md:text-base line-clamp-3"></p>
+        </div>
+    </section>
 
-        if (data.length === 0) {
-            grid.innerHTML = `
-                <div class="col-span-full text-center p-10">
-                    <p class="text-zinc-500">Nessun programma trovato per l'Italia in questo momento.</p>
-                    <button onclick="loadGlobalTV()" class="mt-4 bg-red-600 px-4 py-2 rounded">Guarda programmazione USA</button>
-                </div>`;
-            return;
-        }
-
-        grid.innerHTML = data.map(item => `
-            <div class="rounded-lg overflow-hidden bg-zinc-900 shadow-lg border border-zinc-800">
-                <img src="${item.show.image ? item.show.image.medium : 'https://via.placeholder.com/210x295/333/666?text=No+Image'}" 
-                     class="w-full aspect-[2/3] object-cover" 
-                     onerror="this.src='https://via.placeholder.com/210x295/333/666?text=No+Image'">
-                <div class="p-3 text-sm">
-                    <b class="text-red-500 block mb-1">${item.airtime}</b>
-                    <h2 class="truncate font-bold text-zinc-100">${item.show.name}</h2>
-                    <p class="text-zinc-500 text-xs">${item.show.network ? item.show.network.name : 'Streaming'}</p>
-                </div>
+    <main class="px-6 pb-20">
+        <h3 class="text-xl font-bold mb-4 text-zinc-400">I programmi di oggi</h3>
+        <div id="program-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             </div>
-        `).join('');
+    </main>
 
-    } catch(e) { 
-        console.error("Errore fatale:", e);
-        grid.innerHTML = `<p class="col-span-full text-center text-red-500">Errore di connessione: ${e.message}</p>`; 
-    }
-}
-
-// Funzione di emergenza se i canali IT sono vuoti
-async function loadGlobalTV() {
-    const grid = document.getElementById('tv-grid');
-    const res = await fetch('https://api.tvmaze.com/schedule?country=US');
-    const data = await res.json();
-    // (chiama la stessa logica di mappatura sopra)
-    displayData(data); 
-}
-
-loadTV();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
