@@ -15,30 +15,56 @@
     <div id="tv-grid" class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
 
     <script>
-        // Logica per caricare i dati
         async function loadTV() {
-            const grid = document.getElementById('tv-grid');
-            try {
-                const res = await fetch('https://api.tvmaze.com/schedule?country=IT');
-                const data = await res.json();
-                grid.innerHTML = data.map(item => `
-                    <div class="rounded-lg overflow-hidden bg-zinc-900 shadow-lg">
-                        <img src="${item.show.image ? item.show.image.medium : 'https://via.placeholder.com/210x295'}" class="w-full">
-                        <div class="p-2 text-sm">
-                            <b class="text-red-500">${item.airtime}</b>
-                            <h2 class="truncate font-bold">${item.show.name}</h2>
-                        </div>
-                    </div>
-                `).join('');
-            } catch(e) { grid.innerHTML = "Errore caricamento."; }
+    const grid = document.getElementById('tv-grid');
+    grid.innerHTML = '<p class="col-span-full text-center">Caricamento in corso...</p>';
+    
+    try {
+        console.log("Tentativo di recupero dati...");
+        // Usiamo HTTPS obbligatorio e aggiungiamo un log per vedere cosa arriva
+        const res = await fetch('https://api.tvmaze.com/schedule?country=IT');
+        const data = await res.json();
+        
+        console.log("Dati ricevuti:", data);
+
+        if (data.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-full text-center p-10">
+                    <p class="text-zinc-500">Nessun programma trovato per l'Italia in questo momento.</p>
+                    <button onclick="loadGlobalTV()" class="mt-4 bg-red-600 px-4 py-2 rounded">Guarda programmazione USA</button>
+                </div>`;
+            return;
         }
 
-        // Registrazione SW (Indispensabile per PWA vera)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        grid.innerHTML = data.map(item => `
+            <div class="rounded-lg overflow-hidden bg-zinc-900 shadow-lg border border-zinc-800">
+                <img src="${item.show.image ? item.show.image.medium : 'https://via.placeholder.com/210x295/333/666?text=No+Image'}" 
+                     class="w-full aspect-[2/3] object-cover" 
+                     onerror="this.src='https://via.placeholder.com/210x295/333/666?text=No+Image'">
+                <div class="p-3 text-sm">
+                    <b class="text-red-500 block mb-1">${item.airtime}</b>
+                    <h2 class="truncate font-bold text-zinc-100">${item.show.name}</h2>
+                    <p class="text-zinc-500 text-xs">${item.show.network ? item.show.network.name : 'Streaming'}</p>
+                </div>
+            </div>
+        `).join('');
 
-        loadTV();
+    } catch(e) { 
+        console.error("Errore fatale:", e);
+        grid.innerHTML = `<p class="col-span-full text-center text-red-500">Errore di connessione: ${e.message}</p>`; 
+    }
+}
+
+// Funzione di emergenza se i canali IT sono vuoti
+async function loadGlobalTV() {
+    const grid = document.getElementById('tv-grid');
+    const res = await fetch('https://api.tvmaze.com/schedule?country=US');
+    const data = await res.json();
+    // (chiama la stessa logica di mappatura sopra)
+    displayData(data); 
+}
+
+loadTV();
     </script>
 </body>
 </html>
